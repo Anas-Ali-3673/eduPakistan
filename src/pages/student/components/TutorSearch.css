@@ -1,0 +1,383 @@
+.tutor-search-container {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px 0;
+}
+
+.search-bar {
+  margin-bottom: 20px;
+}
+
+.search-input {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 16px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.filters-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 15px;
+  padding: 15px;
+  background-color: #f8f9fa;
+  border-radius: 8px;
+  margin-bottom: 20px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.filter-group {
+  flex: 1;
+  min-width: 200px;
+}
+
+.filter-group label {
+  display: block;
+  margin-bottom: 5px;
+  font-weight: 500;
+  color: #333;
+}
+
+.filter-group select,
+.filter-group input {
+  width: 100%;
+  padding: 8px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  background-color: white;
+}
+
+.price-range {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.price-range input {
+  width: 45%;
+}
+
+.price-range span {
+  color: #666;
+}
+
+.btn-reset-filters {
+  background: none;
+  border: 1px solid #ccc;
+  padding: 8px 15px;
+  border-radius: 4px;
+  cursor: pointer;
+  align-self: flex-end;
+  transition: all 0.3s ease;
+}
+
+.btn-reset-filters:hover {
+  background-color: #f0f0f0;
+  border-color: #999;
+}
+
+.tutor-results {
+  margin-top: 20px;
+}
+
+.loading-indicator,
+.no-results {
+  padding: 20px;
+  text-align: center;
+  color: #666;
+  background-color: #f9f9f9;
+  border-radius: 8px;
+  margin: 20px 0;
+}
+
+.tutor-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 20px;
+}
+
+.tutor-card {
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  overflow: hidden;
+  background-color: #fff;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  display: flex;
+  flex-direction: column;
+}
+
+.tutor-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+}
+
+.tutor-image {
+  width: 100%;
+  height: 150px;
+  overflow: hidden;
+}
+
+.tutor-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.tutor-info {
+  padding: 15px;
+  flex-grow: 1;
+}
+
+.tutor-info h4 {
+  margin-top: 0;
+  margin-bottom: 10px;
+  color: #333;
+  font-size: 18px;
+}
+
+.tutor-subjects {
+  color: #555;
+  margin-bottom: 8px;
+}
+
+.tutor-location {
+  color: #666;
+  font-size: 14px;
+  margin-bottom: 8px;
+}
+
+.tutor-pricing {
+  font-weight: bold;
+  color: #444;
+  margin-bottom: 8px;
+}
+
+.tutor-rating {
+  display: flex;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.stars {
+  color: #f8c000;
+  letter-spacing: -2px;
+  margin-right: 5px;
+}
+
+.rating-value {
+  font-weight: bold;
+  color: #333;
+}
+
+.tutor-actions {
+  display: flex;
+  flex-direction: column;
+  padding: 10px 15px 15px;
+  gap: 10px;
+}
+
+.btn-view-profile,
+.btn-book-session {
+  padding: 8px 0;
+  text-align: center;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.3s ease;
+}
+
+.btn-view-profile {
+  background-color: transparent;
+  border: 1px solid #3498db;
+  color: #3498db;
+}
+
+.btn-view-profile:hover {
+  background-color: #f0f8ff;
+}
+
+.btn-book-session {
+  background-color: #3498db;
+  border: 1px solid #3498db;
+  color: white;
+}
+
+.btn-book-session:hover {
+  background-color: #2980b9;
+}
+
+/* Tutor details modal */
+.tutor-details-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.modal-content {
+  background-color: white;
+  border-radius: 8px;
+  width: 90%;
+  max-width: 700px;
+  max-height: 90vh;
+  overflow-y: auto;
+  position: relative;
+  box-shadow: 0 5px 20px rgba(0, 0, 0, 0.2);
+}
+
+.close-button {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: none;
+  border: none;
+  font-size: 24px;
+  cursor: pointer;
+  color: #666;
+}
+
+.modal-header {
+  padding: 20px;
+  display: flex;
+  border-bottom: 1px solid #eee;
+  background-color: #f9f9f9;
+}
+
+.modal-tutor-image {
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  overflow: hidden;
+  margin-right: 20px;
+}
+
+.modal-tutor-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.modal-tutor-primary-info {
+  flex-grow: 1;
+}
+
+.modal-tutor-primary-info h3 {
+  margin-top: 0;
+  margin-bottom: 10px;
+}
+
+.modal-body {
+  padding: 20px;
+}
+
+.info-section {
+  margin-bottom: 15px;
+}
+
+.info-section h4 {
+  margin-top: 0;
+  margin-bottom: 5px;
+  color: #333;
+}
+
+.info-section p {
+  margin-top: 0;
+  color: #555;
+}
+
+.modal-footer {
+  padding: 15px 20px;
+  border-top: 1px solid #eee;
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  background-color: #f9f9f9;
+}
+
+.btn-save-tutor,
+.btn-book-now {
+  padding: 10px 20px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.3s ease;
+}
+
+.btn-save-tutor {
+  background-color: white;
+  border: 1px solid #3498db;
+  color: #3498db;
+}
+
+.btn-save-tutor:hover {
+  background-color: #f0f8ff;
+}
+
+.btn-book-now {
+  background-color: #3498db;
+  border: 1px solid #3498db;
+  color: white;
+}
+
+.btn-book-now:hover {
+  background-color: #2980b9;
+}
+
+/* Responsive adjustments */
+@media screen and (max-width: 768px) {
+  .tutor-cards {
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  }
+
+  .filters-container {
+    flex-direction: column;
+  }
+
+  .filter-group {
+    min-width: 100%;
+  }
+
+  .modal-header {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .modal-tutor-image {
+    margin: 0 auto 15px;
+  }
+}
+
+@media screen and (max-width: 480px) {
+  .tutor-cards {
+    grid-template-columns: 1fr;
+  }
+
+  .price-range {
+    flex-direction: column;
+    gap: 5px;
+  }
+
+  .price-range input {
+    width: 100%;
+  }
+
+  .modal-footer {
+    flex-direction: column;
+  }
+
+  .btn-save-tutor,
+  .btn-book-now {
+    width: 100%;
+    text-align: center;
+  }
+}

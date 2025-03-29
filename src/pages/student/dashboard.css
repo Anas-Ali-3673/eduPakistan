@@ -1,0 +1,556 @@
+/* Dashboard.css - Modernized UI */
+:root {
+  --primary-color: #4a6cf7;
+  --primary-dark: #3857e2;
+  --secondary-color: #2ecc71;
+  --secondary-dark: #27ae60;
+  --dark-bg: #1e293b;
+  --light-bg: #f8fafc;
+  --text-dark: #334155;
+  --text-light: #f8fafc;
+  --border-color: #e2e8f0;
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.1);
+  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.1);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --transition: all 0.3s ease;
+  --font-main: 'Poppins', -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+/* Global styles */
+body {
+  font-family: var(--font-main);
+  color: var(--text-dark);
+  background-color: #f5f7fa;
+  margin: 0;
+}
+
+/* Dashboard container */
+.dashboard-container {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+/* Header styling */
+.dashboard-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 2rem;
+  background-color: #fff;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  height: 60px;
+}
+
+.logo {
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: #1a73e8;
+}
+
+.user-menu {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.welcome-message {
+  font-weight: 500;
+}
+
+.logout-btn {
+  background-color: transparent;
+  border: 1px solid #1a73e8;
+  color: #1a73e8;
+  padding: 0.4rem 0.8rem;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.2s;
+}
+
+.logout-btn:hover {
+  background-color: #1a73e8;
+  color: white;
+}
+
+/* Dashboard main content */
+.dashboard-main {
+  display: flex;
+  min-height: calc(100vh - 70px);
+}
+
+/* Sidebar styling */
+.sidebar {
+  width: 250px;
+  background-color: #f9f9f9;
+  border-right: 1px solid #eaeaea;
+  padding: 1.5rem;
+  position: sticky;
+  top: 0;
+  height: 100vh;
+}
+
+.user-profile {
+  display: flex;
+  align-items: center;
+  padding: 0 1.5rem 1.5rem;
+  border-bottom: 1px solid #eee;
+}
+
+.avatar {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  overflow: hidden;
+  margin-right: 12px;
+  background-color: #1a73e8;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-weight: bold;
+  font-size: 1.2rem;
+}
+
+.sidebar-menu {
+  list-style: none;
+  padding: 1.5rem 0;
+}
+
+.sidebar-menu li {
+  padding: 0.5rem 1.5rem;
+  margin-bottom: 0.25rem;
+}
+
+.sidebar-menu li a {
+  display: flex;
+  align-items: center;
+  color: #333;
+  font-weight: 500;
+}
+
+.sidebar-menu li.active {
+  background-color: #e8f0fe;
+  border-left: 3px solid #1a73e8;
+}
+
+.sidebar-menu li.active a {
+  color: #1a73e8;
+}
+
+.icon {
+  margin-right: 10px;
+}
+
+/* Sidebar Navigation Styles */
+.sidebar-nav {
+  margin-top: 2rem;
+}
+
+.sidebar-nav ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.sidebar-nav li {
+  padding: 12px 16px;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  border-radius: 6px;
+  margin-bottom: 4px;
+  transition: background 0.3s ease;
+}
+
+.sidebar-nav li:hover {
+  background-color: rgba(0, 0, 0, 0.05);
+}
+
+.sidebar-nav li.active {
+  background-color: #e8f0fe;
+  color: #1a73e8;
+  font-weight: 500;
+}
+
+.nav-icon {
+  margin-right: 12px;
+  font-size: 18px;
+}
+
+.nav-label {
+  flex: 1;
+}
+
+/* Main content area */
+.main-content {
+  flex: 1;
+  padding: 2rem;
+  background-color: #ffffff;
+  overflow-y: auto;
+}
+
+.main-content h2 {
+  margin-bottom: 1.5rem;
+  color: #333;
+}
+
+/* Dashboard sections */
+.dashboard-section {
+  background-color: #fff;
+  border-radius: 8px;
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.dashboard-card {
+  background-color: #fff;
+  border-radius: 8px;
+  padding: 1.5rem;
+  margin-bottom: 1rem;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+/* Stats cards */
+.stats-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 1rem;
+}
+
+.stat-card {
+  background-color: #f7f9fc;
+  border-radius: 8px;
+  padding: 1.5rem;
+  text-align: center;
+  transition: transform 0.3s;
+}
+
+.stat-card:hover {
+  transform: translateY(-5px);
+}
+
+.stat-icon {
+  font-size: 2rem;
+  margin-bottom: 0.5rem;
+}
+
+.stat-value {
+  font-size: 2rem;
+  font-weight: bold;
+  color: #1a73e8;
+  margin-bottom: 0.5rem;
+}
+
+.stat-label {
+  color: #666;
+}
+
+/* Buttons */
+.btn {
+  padding: 0.6rem 1.2rem;
+  border-radius: 4px;
+  font-weight: 500;
+  cursor: pointer;
+  border: none;
+  transition: all 0.2s;
+}
+
+.btn-sm {
+  padding: 0.3rem 0.7rem;
+  font-size: 0.85rem;
+}
+
+.btn-primary {
+  background-color: #1a73e8;
+  color: white;
+}
+
+.btn-primary:hover {
+  background-color: #1557b0;
+}
+
+.btn-outlined {
+  background-color: transparent;
+  border: 1px solid #1a73e8;
+  color: #1a73e8;
+}
+
+.btn-outlined:hover {
+  background-color: #f0f7ff;
+}
+
+.btn-danger {
+  background-color: transparent;
+  border: 1px solid #d93025;
+  color: #d93025;
+}
+
+.btn-danger:hover {
+  background-color: #d93025;
+  color: white;
+}
+
+/* Session management styles */
+.session-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.session-card {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: #f7f9fc;
+  border-radius: 8px;
+  padding: 1rem;
+  gap: 1rem;
+}
+
+.session-card.past {
+  background-color: #f0f0f0;
+}
+
+.session-info {
+  flex: 1;
+}
+
+.session-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+/* Reviews section styles */
+.reviews-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 1.5rem;
+}
+
+.review-card {
+  background-color: #f7f9fc;
+  border-radius: 8px;
+  padding: 1.5rem;
+}
+
+.review-header {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.tutor-photo {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  background-color: #e8f0fe;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+}
+
+.stars {
+  color: #f8c931;
+}
+
+.review-form textarea {
+  width: 100%;
+  padding: 0.8rem;
+  border-radius: 4px;
+  border: 1px solid #ddd;
+  margin: 1rem 0;
+  resize: vertical;
+  min-height: 100px;
+}
+
+/* Wishlist styles */
+.wishlist-container {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.tutor-card {
+  display: flex;
+  align-items: center;
+  background-color: #f7f9fc;
+  border-radius: 8px;
+  padding: 1rem;
+}
+
+.tutor-info {
+  flex: 1;
+  margin-left: 1rem;
+}
+
+.tutor-subject {
+  color: #666;
+}
+
+.tutor-rating {
+  margin-top: 0.25rem;
+}
+
+.tutor-price {
+  font-weight: bold;
+  color: #1a73e8;
+}
+
+.tutor-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+/* Placeholder styles */
+.placeholder-message {
+  padding: 3rem;
+  text-align: center;
+  background-color: #fff;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.placeholder-message h3 {
+  margin-bottom: 1rem;
+  color: #333;
+}
+
+.placeholder-message p {
+  margin-bottom: 1.5rem;
+  color: #666;
+}
+
+/* Profile Management Styles */
+.profile-container {
+  background-color: #fff;
+  border-radius: 10px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+  padding: 20px;
+  margin-top: 20px;
+}
+
+.profile-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 30px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid #eaeaea;
+}
+
+.profile-avatar {
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  overflow: hidden;
+  background-color: #e9f5ff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 20px;
+}
+
+.profile-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.avatar-placeholder {
+  font-size: 36px;
+  color: #2d81ff;
+  font-weight: bold;
+}
+
+.profile-title h4 {
+  margin: 0;
+  font-size: 24px;
+  color: #333;
+}
+
+.profile-title p {
+  margin: 5px 0 10px;
+  color: #666;
+}
+
+.user-type-badge {
+  display: inline-block;
+  background-color: #2d81ff;
+  color: white;
+  padding: 5px 12px;
+  border-radius: 20px;
+  font-size: 14px;
+}
+
+.profile-details {
+  display: flex;
+  flex-direction: column;
+}
+
+.profile-section {
+  margin-bottom: 30px;
+}
+
+.profile-section h5 {
+  font-size: 18px;
+  margin-bottom: 15px;
+  color: #333;
+  border-bottom: 1px solid #eaeaea;
+  padding-bottom: 10px;
+}
+
+.profile-field {
+  display: flex;
+  margin-bottom: 12px;
+}
+
+.profile-field label {
+  width: 120px;
+  font-weight: 500;
+  color: #555;
+}
+
+.profile-field p {
+  flex: 1;
+  margin: 0;
+  color: #333;
+}
+
+.edit-profile-btn {
+  align-self: flex-start;
+  background-color: #2d81ff;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  padding: 10px 20px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: background-color 0.2s;
+}
+
+.edit-profile-btn:hover {
+  background-color: #1a68d9;
+}
+
+.loading-spinner {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 200px;
+  color: #666;
+}
+
+/* You might already have error-message styles, if not add these */
+.error-message {
+  color: #d32f2f;
+  background-color: #ffeaea;
+  padding: 10px 15px;
+  border-radius: 5px;
+  margin: 15px 0;
+}

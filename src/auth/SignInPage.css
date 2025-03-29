@@ -1,0 +1,14 @@
+/* Basic styling for signin page */
+.signin-container {
+  max-width: 400px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+.signin-form {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+/* Add more styles as needed */
