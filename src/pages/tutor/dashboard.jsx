@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import '../student/dashboard.css';
+import VerificationRequestForm from './components/VerificationRequestForm';
 
 // Mock components for tutor dashboard
 const TutorStatsOverview = () => (
@@ -348,6 +349,19 @@ const TutorSessionManagement = () => {
           </div>
         </div>
       )}
+    </div>
+  );
+};
+
+// Add a new component for verification
+const TutorVerification = () => {
+  return (
+    <div className="dashboard-section">
+      <h3>Verification</h3>
+      <p className="section-description">
+        Get verified to increase your credibility and attract more students.
+      </p>
+      <VerificationRequestForm />
     </div>
   );
 };
@@ -829,6 +843,21 @@ const Dashboard = () => {
     logout();
   };
 
+  const renderContent = () => {
+    switch (activeTab) {
+      case 'overview':
+        return <TutorStatsOverview />;
+      case 'sessions':
+        return <TutorSessionManagement />;
+      case 'profile':
+        return <TutorProfile />;
+      case 'verification':
+        return <TutorVerification />;
+      default:
+        return <TutorStatsOverview />;
+    }
+  };
+
   if (loading) {
     return <div className="loading-screen">Loading...</div>;
   }
@@ -887,25 +916,18 @@ const Dashboard = () => {
                 Teaching Sessions
               </a>
             </li>
-            
+            <li className={activeTab === 'verification' ? 'active' : ''}>
+              <a
+                href="#verification"
+                onClick={() => setActiveTab('verification')}
+              >
+                Verification
+              </a>
+            </li>
           </ul>
         </div>
 
-        <div className="main-content">
-          {activeTab === 'overview' && (
-            <>
-              <h2>Tutor Dashboard</h2>
-              <TutorStatsOverview />
-              <div className="dashboard-card">
-                <h3>Recent Activities</h3>
-                <p>You have 3 new session requests!</p>
-                <p>Next teaching session: Mathematics on Tuesday at 4:00 PM</p>
-              </div>
-            </>
-          )}
-          {activeTab === 'profile' && <TutorProfile />}
-          {activeTab === 'sessions' && <TutorSessionManagement />}
-        </div>
+        <div className="main-content">{renderContent()}</div>
       </div>
     </div>
   );

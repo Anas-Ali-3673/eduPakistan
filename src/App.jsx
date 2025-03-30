@@ -8,7 +8,7 @@ import {
 import { AuthProvider, useAuth } from './context/AuthContext';
 import StudentDashboard from './pages/student/dashboard';
 import TutorDashboard from './pages/tutor/dashboard';
-import AdminDashboard from './pages/admin/dashboard'; // Add this import
+import AdminDashboard from './pages/admin/AdminDashboard'; // Updated import
 import SignInPage from './auth/signIn';
 import SignUpPage from './auth/signup';
 import ProtectedRoute from './routes/ProtectedRoute';
@@ -47,6 +47,8 @@ const App = () => {
               </ProtectedRoute>
             }
           />
+          <Route path="/admin/dashboard" element={<AdminDashboard />} />{' '}
+          {/* Added route */}
           <Route
             path="/dashboard"
             element={
