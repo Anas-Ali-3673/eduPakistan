@@ -3,6 +3,7 @@ import { useAuth } from '../../context/AuthContext';
 import { Navigate } from 'react-router-dom';
 import VerificationRequests from './components/VerificationRequests';
 import TutorVerification from './components/TutorVerification';
+import ReportsManagement from './components/ReportsManagement';
 import './AdminDashboard.css';
 
 const AdminDashboard = () => {
@@ -20,6 +21,8 @@ const AdminDashboard = () => {
         return <VerificationRequests />;
       case 'tutorVerification':
         return <TutorVerification />;
+      case 'reports':
+        return <ReportsManagement />;
       default:
         return <VerificationRequests />;
     }
@@ -45,6 +48,14 @@ const AdminDashboard = () => {
             onClick={() => setActiveSection('tutorVerification')}
           >
             Tutor Verification
+          </button>
+          <button
+            className={`nav-item ${
+              activeSection === 'reports' ? 'active' : ''
+            }`}
+            onClick={() => setActiveSection('reports')}
+          >
+            User Reports
           </button>
           {/* Add more navigation items as needed */}
         </nav>
