@@ -94,7 +94,6 @@ const WishlistComponent = () => {
         <div className="error-message">{error}</div>
       ) : wishlist.length === 0 ? (
         <div className="empty-state">
-          <div className="empty-icon">❤️</div>
           <h3>Your wishlist is empty</h3>
           <p>You haven't saved any tutors to your wishlist yet.</p>
           <p>Browse our tutors and add your favorites here for quick access.</p>
@@ -169,7 +168,7 @@ const WishlistComponent = () => {
                   className="btn-remove-wishlist"
                   onClick={() => removeTutorFromWishlist(tutor._id)}
                 >
-                  <span className="btn-icon">❌</span> Remove
+                  Remove
                 </button>
               </div>
             </div>
