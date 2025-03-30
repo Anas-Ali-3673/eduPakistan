@@ -8,6 +8,7 @@ import {
 import { AuthProvider, useAuth } from './context/AuthContext';
 import StudentDashboard from './pages/student/dashboard';
 import TutorDashboard from './pages/tutor/dashboard';
+import AdminDashboard from './pages/admin/dashboard'; // Add this import
 import SignInPage from './auth/signIn';
 import SignUpPage from './auth/signup';
 import ProtectedRoute from './routes/ProtectedRoute';
@@ -37,6 +38,15 @@ const App = () => {
               </ProtectedRoute>
             }
           />
+          {/* Add new admin route */}
+          <Route
+            path="/admin-dashboard/*"
+            element={
+              <ProtectedRoute requiredRole="admin">
+                <AdminDashboard />
+              </ProtectedRoute>
+            }
+          />
           <Route
             path="/dashboard"
             element={
@@ -61,6 +71,8 @@ const RoleBasedRedirect = () => {
     return <Navigate to="/student-dashboard" replace />;
   } else if (currentUser?.userType === 'tutor') {
     return <Navigate to="/tutor-dashboard" replace />;
+  } else if (currentUser?.userType === 'admin') {
+    return <Navigate to="/admin-dashboard" replace />;
   } else {
     // Default fallback
     return <StudentDashboard />;

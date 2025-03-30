@@ -15,13 +15,15 @@ const ProtectedRoute = ({ children, requiredRole = null }) => {
     return <Navigate to="/signin" state={{ from: location }} replace />;
   }
 
-  // If a specific role is required (student or tutor)
+  // If a specific role is required (student, tutor or admin)
   if (requiredRole && currentUser.userType !== requiredRole) {
     // Redirect to appropriate dashboard based on current user's role
     if (currentUser.userType === 'student') {
       return <Navigate to="/student-dashboard" replace />;
     } else if (currentUser.userType === 'tutor') {
       return <Navigate to="/tutor-dashboard" replace />;
+    } else if (currentUser.userType === 'admin') {
+      return <Navigate to="/admin-dashboard" replace />;
     } else {
       return <Navigate to="/dashboard" replace />;
     }
