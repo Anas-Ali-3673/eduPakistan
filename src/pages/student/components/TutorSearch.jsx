@@ -29,9 +29,14 @@ const TutorSearch = () => {
   const [bookingError, setBookingError] = useState(null);
   const [bookingSuccess, setBookingSuccess] = useState(false);
 
+  // Wishlist state
+  const [wishlistTutors, setWishlistTutors] = useState([]);
+  const [wishlistLoading, setWishlistLoading] = useState(false);
+
   // Fetch tutors on component mount
   useEffect(() => {
     fetchTutors();
+    fetchWishlist(); // Add this line to fetch wishlist on mount
   }, []);
 
   // Function to fetch tutors with applied filters
@@ -82,6 +87,120 @@ const TutorSearch = () => {
       console.error('Error fetching tutors:', err);
     } finally {
       setLoading(false);
+    }
+  };
+
+  // Function to fetch wishlist
+  const fetchWishlist = async () => {
+    if (!currentUser?.token) return;
+
+    setWishlistLoading(true);
+    try {
+      const response = await fetch('http://localhost:5000/api/wishlists', {
+        headers: {
+          Authorization: `Bearer ${currentUser.token}`,
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch wishlist');
+      }
+
+      const data = await response.json();
+
+      if (data.status === 'success') {
+        // Extract just the tutor IDs for easier checking
+        const tutorIds = (data.data.tutors || []).map((tutor) => tutor._id);
+        setWishlistTutors(tutorIds);
+      }
+    } catch (err) {
+      console.error('Error fetching wishlist:', err);
+      // We don't show this error to the user to avoid cluttering the UI
+    } finally {
+      setWishlistLoading(false);
+    }
+  };
+
+  // Function to check if tutor is in wishlist
+  const isInWishlist = (tutorId) => {
+    return wishlistTutors.includes(tutorId);
+  };
+
+  // Function to add tutor to wishlist
+  const addToWishlist = async (tutorId, event) => {
+    event.stopPropagation(); // Prevent triggering card click
+
+    if (!currentUser?.token) {
+      alert('Please sign in to save tutors to your wishlist');
+      return;
+    }
+
+    try {
+      const response = await fetch('http://localhost:5000/api/wishlists', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${currentUser.token}`,
+        },
+        body: JSON.stringify({ tutorId }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to add tutor to wishlist');
+      }
+
+      const data = await response.json();
+
+      if (data.status === 'success') {
+        // Update local wishlist state
+        const tutorIds = (data.data.tutors || []).map((tutor) => tutor._id);
+        setWishlistTutors(tutorIds);
+      } else {
+        throw new Error(data.message || 'Something went wrong');
+      }
+    } catch (err) {
+      alert(err.message || 'An error occurred while adding tutor to wishlist');
+      console.error('Error adding tutor to wishlist:', err);
+    }
+  };
+
+  // Function to remove tutor from wishlist
+  const removeFromWishlist = async (tutorId, event) => {
+    event.stopPropagation(); // Prevent triggering card click
+
+    try {
+      const response = await fetch(
+        `http://localhost:5000/api/wishlists/${tutorId}`,
+        {
+          method: 'DELETE',
+          headers: {
+            Authorization: `Bearer ${currentUser?.token}`,
+          },
+        }
+      );
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(
+          errorData.message || 'Failed to remove tutor from wishlist'
+        );
+      }
+
+      const data = await response.json();
+
+      if (data.status === 'success') {
+        // Update local wishlist state
+        const tutorIds = (data.data.tutors || []).map((tutor) => tutor._id);
+        setWishlistTutors(tutorIds);
+      } else {
+        throw new Error(data.message || 'Something went wrong');
+      }
+    } catch (err) {
+      alert(
+        err.message || 'An error occurred while removing tutor from wishlist'
+      );
+      console.error('Error removing tutor from wishlist:', err);
     }
   };
 
@@ -413,19 +532,6 @@ const TutorSearch = () => {
               </select>
             </div>
           </div>
-
-          <div className="filter-actions">
-            <button type="submit" className="btn btn-primary">
-              <span className="btn-icon">🔍</span> Apply Filters
-            </button>
-            <button
-              type="button"
-              className="btn-reset-filters"
-              onClick={handleResetFilters}
-            >
-              <span className="btn-icon">↺</span> Reset Filters
-            </button>
-          </div>
         </form>
       </div>
 
@@ -668,8 +774,24 @@ const TutorSearch = () => {
             </div>
 
             <div className="modal-footer">
-              <button className="btn btn-secondary btn-save-tutor">
-                <span className="btn-icon">❤️</span> Save to Wishlist
+              <button
+                className={`btn ${
+                  isInWishlist(selectedTutor._id)
+                    ? 'btn-saved'
+                    : 'btn-secondary'
+                } btn-save-tutor`}
+                onClick={(e) =>
+                  isInWishlist(selectedTutor._id)
+                    ? removeFromWishlist(selectedTutor._id, e)
+                    : addToWishlist(selectedTutor._id, e)
+                }
+              >
+                <span className="btn-icon">
+                  {isInWishlist(selectedTutor._id) ? '❤️' : '🤍'}
+                </span>
+                {isInWishlist(selectedTutor._id)
+                  ? 'Saved to Wishlist'
+                  : 'Save to Wishlist'}
               </button>
               <button
                 className="btn btn-primary btn-book-now"

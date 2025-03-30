@@ -5,6 +5,7 @@ import { useAuth } from '../../context/AuthContext';
 // Import only components that exist
 import TutorSearch from './components/TutorSearch';
 import ProfileManagement from './components/ProfileManagement';
+import WishlistComponent from './components/Wishlist';
 import './dashboard.css';
 
 // Placeholder components for missing imports
@@ -823,13 +824,6 @@ const ReviewsSystem = () => (
   <div className="dashboard-section">
     <h3>My Reviews</h3>
     <p>You haven't submitted any reviews yet.</p>
-  </div>
-);
-
-const WishlistComponent = () => (
-  <div className="dashboard-section">
-    <h3>My Wishlist</h3>
-    <p>You have no tutors or courses in your wishlist.</p>
   </div>
 );
 
