@@ -23,6 +23,17 @@ const ReportsManagement = () => {
   const [actionLoading, setActionLoading] = useState(false);
   const [actionSuccess, setActionSuccess] = useState(null);
 
+  // Add new state for creating reports
+  const [showCreateForm, setShowCreateForm] = useState(false);
+  const [newReport, setNewReport] = useState({
+    category: 'session-issue',
+    reportedUser: '',
+    description: '',
+    status: 'pending',
+  });
+  const [usersList, setUsersList] = useState([]);
+  const [usersLoading, setUsersLoading] = useState(false);
+
   useEffect(() => {
     const fetchReports = async () => {
       setIsLoading(true);
@@ -88,6 +99,40 @@ const ReportsManagement = () => {
       fetchReports();
     }
   }, [currentUser, filter, categoryFilter]);
+
+  // Add effect to fetch users when creating a new report
+  useEffect(() => {
+    const fetchUsers = async () => {
+      if (!showCreateForm) return;
+
+      setUsersLoading(true);
+      try {
+        const response = await fetch(
+          'http://localhost:5000/api/users?role=all',
+          {
+            headers: {
+              Authorization: `Bearer ${currentUser.token}`,
+            },
+          }
+        );
+
+        if (!response.ok) {
+          throw new Error('Failed to fetch users');
+        }
+
+        const data = await response.json();
+        setUsersList(data.data || []);
+      } catch (err) {
+        console.error('Error fetching users:', err);
+      } finally {
+        setUsersLoading(false);
+      }
+    };
+
+    if (showCreateForm && currentUser?.token) {
+      fetchUsers();
+    }
+  }, [showCreateForm, currentUser]);
 
   const handleFilterChange = (newFilter) => {
     setFilter(newFilter);
@@ -169,11 +214,182 @@ const ReportsManagement = () => {
     }
   };
 
+  // Add handlers for creating new reports
+  const handleCreateReport = () => {
+    setShowCreateForm(true);
+    setSelectedReport(null);
+  };
+
+  const handleCloseCreateForm = () => {
+    setShowCreateForm(false);
+    setNewReport({
+      category: 'session-issue',
+      reportedUser: '',
+      description: '',
+      status: 'pending',
+    });
+  };
+
+  const handleNewReportChange = (e) => {
+    const { name, value } = e.target;
+    setNewReport((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
+
+  const handleSubmitNewReport = async (e) => {
+    e.preventDefault();
+    setActionLoading(true);
+
+    try {
+      const response = await fetch('http://localhost:5000/api/reports/admin', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${currentUser.token}`,
+        },
+        body: JSON.stringify({
+          ...newReport,
+          createdBy: 'admin',
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to create report');
+      }
+
+      const data = await response.json();
+
+      // Update reports list
+      setReports((prev) => [data.data, ...prev]);
+
+      // Update stats
+      setStats((prev) => ({
+        ...prev,
+        pending: prev.pending + 1,
+        total: prev.total + 1,
+      }));
+
+      setActionSuccess('Report created successfully');
+      setShowCreateForm(false);
+
+      // Reset form
+      setNewReport({
+        category: 'session-issue',
+        reportedUser: '',
+        description: '',
+        status: 'pending',
+      });
+
+      // Clear success message after a delay
+      setTimeout(() => {
+        setActionSuccess(null);
+      }, 3000);
+    } catch (err) {
+      console.error('Error creating report:', err);
+      setError(err.message || 'Failed to create report. Please try again.');
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
   const renderReportDetails = () => {
+    if (showCreateForm) {
+      return (
+        <div className="create-report-form">
+          {actionSuccess && (
+            <div className="success-message">
+              <div className="success-icon">✓</div>
+              <p>{actionSuccess}</p>
+            </div>
+          )}
+
+          <h3>Create New Report</h3>
+
+          <form onSubmit={handleSubmitNewReport}>
+            <div className="form-group">
+              <label htmlFor="category">Category</label>
+              <select
+                id="category"
+                name="category"
+                value={newReport.category}
+                onChange={handleNewReportChange}
+                required
+              >
+                <option value="inappropriate-behavior">
+                  Inappropriate Behavior
+                </option>
+                <option value="session-issue">Session Issue</option>
+                <option value="payment-dispute">Payment Dispute</option>
+                <option value="technical-problem">Technical Problem</option>
+                <option value="other">Other</option>
+              </select>
+            </div>
+
+            <div className="form-group">
+              <label htmlFor="reportedUser">User</label>
+              {usersLoading ? (
+                <div className="mini-loader">Loading users...</div>
+              ) : (
+                <select
+                  id="reportedUser"
+                  name="reportedUser"
+                  value={newReport.reportedUser}
+                  onChange={handleNewReportChange}
+                  required
+                >
+                  <option value="">Select a user</option>
+                  {usersList.map((user) => (
+                    <option key={user._id} value={user._id}>
+                      {user.name} ({user.email}) - {user.role}
+                    </option>
+                  ))}
+                </select>
+              )}
+            </div>
+
+            <div className="form-group">
+              <label htmlFor="description">Description</label>
+              <textarea
+                id="description"
+                name="description"
+                value={newReport.description}
+                onChange={handleNewReportChange}
+                rows={4}
+                required
+              ></textarea>
+            </div>
+
+            <div className="form-actions">
+              <button
+                type="button"
+                className="btn-cancel"
+                onClick={handleCloseCreateForm}
+                disabled={actionLoading}
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                className="btn-create"
+                disabled={actionLoading}
+              >
+                {actionLoading ? 'Creating...' : 'Create Report'}
+              </button>
+            </div>
+          </form>
+        </div>
+      );
+    }
+
     if (!selectedReport) {
       return (
         <div className="details-placeholder">
-          <p>Select a report to view details</p>
+          <p>Select a report to view details or create a new one</p>
+          <button className="btn-create-report" onClick={handleCreateReport}>
+            Create New Report
+          </button>
         </div>
       );
     }
@@ -194,10 +410,18 @@ const ReportsManagement = () => {
 
         <h3>Report Details</h3>
 
-        <div className="report-header">
+        <div className="report-actions-header">
           <div className="report-id">ID: {selectedReport._id}</div>
-          <div className={`status-badge ${selectedReport.status}`}>
-            {selectedReport.status}
+          <div className="header-actions">
+            <div className={`status-badge ${selectedReport.status}`}>
+              {selectedReport.status}
+            </div>
+            <button
+              className="btn-create-report small"
+              onClick={handleCreateReport}
+            >
+              Create New Report
+            </button>
           </div>
         </div>
 
@@ -339,7 +563,7 @@ const ReportsManagement = () => {
       <div className="reports-content">
         <div className="reports-list-container">
           <div className="filters-header">
-            <h3>User Reports</h3>
+            <h3>Admin Reports</h3>
             <div className="filter-controls">
               <div className="filter-buttons">
                 <button
@@ -411,6 +635,12 @@ const ReportsManagement = () => {
             ) : reports.length === 0 ? (
               <div className="empty-state">
                 <p>No {filter !== 'all' ? filter : ''} reports found.</p>
+                <button
+                  className="btn-create-report"
+                  onClick={handleCreateReport}
+                >
+                  Create New Report
+                </button>
               </div>
             ) : (
               <ul className="reports-items">
@@ -439,7 +669,7 @@ const ReportsManagement = () => {
                           : 'Report'}
                       </h4>
                       <p className="report-date">
-                        Submitted:{' '}
+                        Created:{' '}
                         {new Date(report.createdAt).toLocaleDateString()}
                       </p>
                     </div>
