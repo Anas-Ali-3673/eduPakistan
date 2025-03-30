@@ -4,7 +4,6 @@ import { useAuth } from '../../context/AuthContext';
 
 // Import only components that exist
 import TutorSearch from './components/TutorSearch';
-import SessionBooking from './components/SessionBooking';
 import ProfileManagement from './components/ProfileManagement';
 import './dashboard.css';
 
@@ -64,8 +63,8 @@ const SECTIONS = {
   BOOKINGS: 'bookings',
   REVIEWS: 'reviews',
   WISHLIST: 'wishlist',
-  COURSES: 'courses',
-  SETTINGS: 'settings',
+  // COURSES: 'courses',
+  // SETTINGS: 'settings',
   PROFILE: 'profile',
 };
 
@@ -101,21 +100,7 @@ const Dashboard = () => {
         return <ReviewsSystem />;
       case SECTIONS.WISHLIST:
         return <WishlistComponent />;
-      case SECTIONS.COURSES:
-        return (
-          <div className="placeholder-message">
-            <h3>My Courses</h3>
-            <p>View and manage your enrolled courses here.</p>
-            <button className="btn">Browse Courses</button>
-          </div>
-        );
-      case SECTIONS.SETTINGS:
-        return (
-          <div className="placeholder-message">
-            <h3>Account Settings</h3>
-            <p>Update your account settings and preferences here.</p>
-          </div>
-        );
+
       case SECTIONS.PROFILE:
         return <ProfileManagement />;
       default:
@@ -188,13 +173,7 @@ const Dashboard = () => {
                 <span className="nav-icon">👨‍🏫</span>
                 <span className="nav-label">Find Tutors</span>
               </li>
-              <li
-                className={activeSection === SECTIONS.SESSIONS ? 'active' : ''}
-                onClick={() => setActiveSection(SECTIONS.SESSIONS)}
-              >
-                <span className="nav-icon">📅</span>
-                <span className="nav-label">My Sessions</span>
-              </li>
+
               <li
                 className={activeSection === SECTIONS.BOOKINGS ? 'active' : ''}
                 onClick={() => setActiveSection(SECTIONS.BOOKINGS)}
@@ -202,33 +181,13 @@ const Dashboard = () => {
                 <span className="nav-icon">📝</span>
                 <span className="nav-label">Book Sessions</span>
               </li>
-              <li
-                className={activeSection === SECTIONS.COURSES ? 'active' : ''}
-                onClick={() => setActiveSection(SECTIONS.COURSES)}
-              >
-                <span className="nav-icon">📚</span>
-                <span className="nav-label">My Courses</span>
-              </li>
-              <li
-                className={activeSection === SECTIONS.REVIEWS ? 'active' : ''}
-                onClick={() => setActiveSection(SECTIONS.REVIEWS)}
-              >
-                <span className="nav-icon">⭐</span>
-                <span className="nav-label">My Reviews</span>
-              </li>
+
               <li
                 className={activeSection === SECTIONS.WISHLIST ? 'active' : ''}
                 onClick={() => setActiveSection(SECTIONS.WISHLIST)}
               >
                 <span className="nav-icon">❤️</span>
                 <span className="nav-label">My Wishlist</span>
-              </li>
-              <li
-                className={activeSection === SECTIONS.SETTINGS ? 'active' : ''}
-                onClick={() => setActiveSection(SECTIONS.SETTINGS)}
-              >
-                <span className="nav-icon">⚙️</span>
-                <span className="nav-label">Account Settings</span>
               </li>
             </ul>
           </nav>

@@ -19,6 +19,16 @@ const TutorSearch = () => {
   const [selectedTutor, setSelectedTutor] = useState(null);
   const [showModal, setShowModal] = useState(false);
 
+  // Booking state
+  const [showBookingModal, setShowBookingModal] = useState(false);
+  const [bookingDate, setBookingDate] = useState('');
+  const [availableSlots, setAvailableSlots] = useState([]);
+  const [selectedSlot, setSelectedSlot] = useState(null);
+  const [bookingSubject, setBookingSubject] = useState('');
+  const [bookingLoading, setBookingLoading] = useState(false);
+  const [bookingError, setBookingError] = useState(null);
+  const [bookingSuccess, setBookingSuccess] = useState(false);
+
   // Fetch tutors on component mount
   useEffect(() => {
     fetchTutors();
@@ -113,7 +123,125 @@ const TutorSearch = () => {
 
   // Handle booking session
   const handleBookSession = (tutorId) => {
-    console.log(`Booking session with tutor ID: ${tutorId}`);
+    const tutor = tutors.find((t) => t._id === tutorId);
+    if (tutor) {
+      setSelectedTutor(tutor);
+      setBookingSubject(
+        tutor.subjects && tutor.subjects.length > 0 ? tutor.subjects[0] : ''
+      );
+      setShowBookingModal(true);
+      // Reset booking states
+      setBookingDate('');
+      setAvailableSlots([]);
+      setSelectedSlot(null);
+      setBookingError(null);
+      setBookingSuccess(false);
+    }
+  };
+
+  // Fetch available slots for a specific date
+  const fetchAvailableSlots = async (tutorId, date) => {
+    setBookingLoading(true);
+    setBookingError(null);
+
+    try {
+      const response = await fetch(
+        `http://localhost:5000/api/users/${tutorId}/available-slots?date=${date}`,
+        {
+          headers: {
+            Authorization: `Bearer ${currentUser?.token || ''}`,
+          },
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch available slots');
+      }
+
+      const data = await response.json();
+
+      if (data.status === 'success') {
+        setAvailableSlots(data.data);
+      } else {
+        throw new Error(data.message || 'Something went wrong');
+      }
+    } catch (err) {
+      setBookingError(
+        err.message || 'An error occurred while fetching available slots'
+      );
+      console.error('Error fetching available slots:', err);
+    } finally {
+      setBookingLoading(false);
+    }
+  };
+
+  // Handle date change for booking
+  const handleDateChange = (e) => {
+    const selectedDate = e.target.value;
+    setBookingDate(selectedDate);
+    if (selectedDate && selectedTutor) {
+      fetchAvailableSlots(selectedTutor._id, selectedDate);
+    }
+  };
+
+  // Handle slot selection
+  const handleSlotSelection = (slot) => {
+    setSelectedSlot(slot);
+  };
+
+  // Submit booking
+  const handleBookingSubmit = async () => {
+    if (!selectedSlot || !bookingDate || !bookingSubject) {
+      setBookingError('Please select a date, time slot, and subject');
+      return;
+    }
+
+    setBookingLoading(true);
+    setBookingError(null);
+
+    try {
+      const response = await fetch('http://localhost:5000/api/sessions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${currentUser?.token || ''}`,
+        },
+        body: JSON.stringify({
+          tutor: selectedTutor._id,
+          student: currentUser._id,
+          subject: bookingSubject,
+          date: bookingDate,
+          startTime: selectedSlot.startTime,
+          endTime: selectedSlot.endTime,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || 'Failed to book session');
+      }
+
+      setBookingSuccess(true);
+
+      // Reset form after success
+      setTimeout(() => {
+        setShowBookingModal(false);
+        setBookingSuccess(false);
+      }, 3000);
+    } catch (err) {
+      setBookingError(
+        err.message || 'An error occurred while booking the session'
+      );
+      console.error('Error booking session:', err);
+    } finally {
+      setBookingLoading(false);
+    }
+  };
+
+  // Close booking modal
+  const handleCloseBookingModal = () => {
+    setShowBookingModal(false);
   };
 
   // Add sort change handler
@@ -549,6 +677,131 @@ const TutorSearch = () => {
               >
                 <span className="btn-icon">📝</span> Book a Session
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Booking Modal */}
+      {showBookingModal && selectedTutor && (
+        <div className="booking-modal">
+          <div className="modal-content booking-content">
+            <button className="close-button" onClick={handleCloseBookingModal}>
+              &times;
+            </button>
+
+            <div className="modal-header">
+              <h3>Book a Session with {selectedTutor.name || 'Tutor'}</h3>
+            </div>
+
+            {bookingSuccess ? (
+              <div className="booking-success">
+                <div className="success-icon">✓</div>
+                <h4>Booking Successful!</h4>
+                <p>Your session has been scheduled successfully.</p>
+              </div>
+            ) : (
+              <div className="modal-body">
+                {bookingError && (
+                  <div className="booking-error-message">{bookingError}</div>
+                )}
+
+                <div className="booking-form">
+                  <div className="form-group">
+                    <label htmlFor="booking-subject">Subject:</label>
+                    <select
+                      id="booking-subject"
+                      value={bookingSubject}
+                      onChange={(e) => setBookingSubject(e.target.value)}
+                    >
+                      <option value="">Select a subject</option>
+                      {selectedTutor.subjects &&
+                        selectedTutor.subjects.map((subject, index) => (
+                          <option key={index} value={subject}>
+                            {subject}
+                          </option>
+                        ))}
+                    </select>
+                  </div>
+
+                  <div className="form-group">
+                    <label htmlFor="booking-date">Date:</label>
+                    <input
+                      type="date"
+                      id="booking-date"
+                      value={bookingDate}
+                      onChange={handleDateChange}
+                      min={new Date().toISOString().split('T')[0]}
+                    />
+                  </div>
+
+                  {bookingLoading && (
+                    <div className="slots-loading">
+                      <div className="loader small"></div>
+                      <p>Loading available time slots...</p>
+                    </div>
+                  )}
+
+                  {!bookingLoading &&
+                  bookingDate &&
+                  availableSlots.length > 0 ? (
+                    <div className="form-group">
+                      <label>Available Time Slots:</label>
+                      <div className="time-slots-container">
+                        {availableSlots.map((availabilitySlot, index) => (
+                          <div key={index} className="day-slots">
+                            <h4>{availabilitySlot.day}</h4>
+                            <div className="time-slots">
+                              {availabilitySlot.slots.map((slot, slotIndex) => (
+                                <button
+                                  key={slotIndex}
+                                  type="button"
+                                  className={`time-slot-btn ${
+                                    selectedSlot &&
+                                    selectedSlot.startTime === slot.startTime &&
+                                    selectedSlot.endTime === slot.endTime
+                                      ? 'selected'
+                                      : ''
+                                  }`}
+                                  onClick={() => handleSlotSelection(slot)}
+                                >
+                                  {slot.startTime} - {slot.endTime}
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ) : (
+                    !bookingLoading &&
+                    bookingDate && (
+                      <div className="no-slots-message">
+                        <p>No available time slots for the selected date.</p>
+                      </div>
+                    )
+                  )}
+                </div>
+              </div>
+            )}
+
+            <div className="modal-footer">
+              {!bookingSuccess && (
+                <button
+                  className={`btn btn-primary btn-book-confirm ${
+                    bookingLoading ? 'loading' : ''
+                  }`}
+                  onClick={handleBookingSubmit}
+                  disabled={
+                    bookingLoading ||
+                    !selectedSlot ||
+                    !bookingDate ||
+                    !bookingSubject
+                  }
+                >
+                  {bookingLoading ? 'Booking...' : 'Confirm Booking'}
+                </button>
+              )}
             </div>
           </div>
         </div>
