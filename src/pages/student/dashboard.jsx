@@ -36,6 +36,8 @@ const SessionManagement = () => {
   const [sessions, setSessions] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [viewMode, setViewMode] = useState('list'); // Add view mode state
+  const [currentMonth, setCurrentMonth] = useState(new Date()); // For calendar navigation
 
   // Add new state variables for rescheduling
   const [isRescheduling, setIsRescheduling] = useState(false);
@@ -116,71 +118,61 @@ const SessionManagement = () => {
     });
   };
 
-  // Fetch available slots for a specific date when rescheduling
-  const fetchAvailableSlots = async (tutor, date) => {
-    setRescheduleLoading(true);
-    setRescheduleError(null);
+  // Format date for calendar display
+  const formatDateForCalendar = (date) => {
+    return new Date(date).toISOString().split('T')[0];
+  };
 
-    // Validate inputs before making API call
-    if (!tutor) {
-      setRescheduleError('Invalid tutor information. Please try again.');
-      setRescheduleLoading(false);
-      console.error('Error: Missing tutorId parameter');
-      return;
+  // Get all dates in current month for calendar view
+  const getDatesInMonth = () => {
+    const year = currentMonth.getFullYear();
+    const month = currentMonth.getMonth();
+    const firstDay = new Date(year, month, 1);
+    const lastDay = new Date(year, month + 1, 0);
+
+    // Get day of week of first day (0 = Sunday, 1 = Monday, etc.)
+    const firstDayOfWeek = firstDay.getDay();
+
+    // Create array of date objects
+    const daysArray = [];
+
+    // Add empty slots for days before the 1st of month
+    for (let i = 0; i < firstDayOfWeek; i++) {
+      daysArray.push({ date: null, isEmpty: true });
     }
 
-    try {
-      console.log(`Fetching slots for tutor: ${tutor}, date: ${date}`);
-
-      const response = await fetch(
-        `http://localhost:5000/api/users/${tutor}/available-slots?date=${date}`,
-        {
-          headers: {
-            Authorization: `Bearer ${currentUser?.token || ''}`,
-          },
-        }
-      );
-
-      // Handle HTTP errors with more specific messages
-      if (!response.ok) {
-        const errorStatus = response.status;
-        let errorMessage = 'Failed to fetch available slots';
-
-        if (errorStatus === 500) {
-          errorMessage = 'Server error occurred. Please try again later.';
-        } else if (errorStatus === 401 || errorStatus === 403) {
-          errorMessage = 'Authentication error. Please sign in again.';
-        } else if (errorStatus === 404) {
-          errorMessage = 'Tutor availability information not found.';
-        }
-
-        throw new Error(`${errorMessage} (Status: ${errorStatus})`);
-      }
-
-      const data = await response.json();
-      console.log('Available slots:', data.data);
-
-      if (data.status === 'success') {
-        setAvailableSlots(data.data);
-      } else {
-        throw new Error(data.message || 'Something went wrong');
-      }
-    } catch (err) {
-      // Improved error message with more context
-      const errorMessage =
-        err.message || 'An error occurred while fetching available slots';
-      setRescheduleError(errorMessage);
-      console.error(
-        'Error fetching available slots:',
-        err,
-        'Tutor ID:',
-        tutor, // Fixed: use the tutor parameter instead of tutorId
-        'Date:',
-        date
-      );
-    } finally {
-      setRescheduleLoading(false);
+    // Add actual days in month
+    for (let day = 1; day <= lastDay.getDate(); day++) {
+      const date = new Date(year, month, day);
+      daysArray.push({
+        date: date,
+        formattedDate: formatDateForCalendar(date),
+        day: day,
+      });
     }
+
+    return daysArray;
+  };
+
+  // Navigate to previous month
+  const goToPreviousMonth = () => {
+    setCurrentMonth(
+      new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 1, 1)
+    );
+  };
+
+  // Navigate to next month
+  const goToNextMonth = () => {
+    setCurrentMonth(
+      new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 1)
+    );
+  };
+
+  // Get sessions for a specific date
+  const getSessionsForDate = (dateString) => {
+    return sessions.filter(
+      (session) => formatDateForCalendar(session.date) === dateString
+    );
   };
 
   // Handle session details view
@@ -252,7 +244,6 @@ const SessionManagement = () => {
     setRescheduleDate(selectedDate);
 
     if (selectedDate && rescheduleSession) {
-      // Check if tutor is a string ID or an object with _id property
       const tutorId =
         typeof rescheduleSession.tutor === 'string'
           ? rescheduleSession.tutor
@@ -272,11 +263,6 @@ const SessionManagement = () => {
     }
   };
 
-  // Handle slot selection
-  const handleSlotSelection = (slot) => {
-    setSelectedSlot(slot);
-  };
-
   // Submit reschedule request
   const handleRescheduleSubmit = async () => {
     if (!selectedSlot || !rescheduleDate) {
@@ -288,7 +274,6 @@ const SessionManagement = () => {
     setRescheduleError(null);
 
     try {
-      // Get proper tutor ID regardless of format
       const tutorId =
         typeof rescheduleSession.tutor === 'string'
           ? rescheduleSession.tutor
@@ -322,7 +307,6 @@ const SessionManagement = () => {
         throw new Error(data.message || 'Failed to reschedule session');
       }
 
-      // Update the sessions list with the rescheduled session
       setSessions((prevSessions) =>
         prevSessions.map((session) =>
           session._id === rescheduleSession._id ? data.data : session
@@ -331,7 +315,6 @@ const SessionManagement = () => {
 
       setRescheduleSuccess(true);
 
-      // Close the modal after success
       setTimeout(() => {
         setIsRescheduling(false);
         setRescheduleSuccess(false);
@@ -381,12 +364,10 @@ const SessionManagement = () => {
         throw new Error(errorData.message || 'Failed to cancel session');
       }
 
-      // Remove the cancelled session from the state
       setSessions((prevSessions) =>
         prevSessions.filter((session) => session._id !== cancelSessionId)
       );
 
-      // Close the confirmation dialog
       setShowCancelConfirm(false);
       setCancelSessionId(null);
     } catch (err) {
@@ -403,9 +384,90 @@ const SessionManagement = () => {
     setCancelSessionId(null);
   };
 
+  // Fetch available slots for a specific date when rescheduling
+  const fetchAvailableSlots = async (tutor, date) => {
+    setRescheduleLoading(true);
+    setRescheduleError(null);
+
+    if (!tutor) {
+      setRescheduleError('Invalid tutor information. Please try again.');
+      setRescheduleLoading(false);
+      console.error('Error: Missing tutorId parameter');
+      return;
+    }
+
+    try {
+      console.log(`Fetching slots for tutor: ${tutor}, date: ${date}`);
+
+      const response = await fetch(
+        `http://localhost:5000/api/users/${tutor}/available-slots?date=${date}`,
+        {
+          headers: {
+            Authorization: `Bearer ${currentUser?.token || ''}`,
+          },
+        }
+      );
+
+      if (!response.ok) {
+        const errorStatus = response.status;
+        let errorMessage = 'Failed to fetch available slots';
+
+        if (errorStatus === 500) {
+          errorMessage = 'Server error occurred. Please try again later.';
+        } else if (errorStatus === 401 || errorStatus === 403) {
+          errorMessage = 'Authentication error. Please sign in again.';
+        } else if (errorStatus === 404) {
+          errorMessage = 'Tutor availability information not found.';
+        }
+
+        throw new Error(`${errorMessage} (Status: ${errorStatus})`);
+      }
+
+      const data = await response.json();
+      console.log('Available slots:', data.data);
+
+      if (data.status === 'success') {
+        setAvailableSlots(data.data);
+      } else {
+        throw new Error(data.message || 'Something went wrong');
+      }
+    } catch (err) {
+      const errorMessage =
+        err.message || 'An error occurred while fetching available slots';
+      setRescheduleError(errorMessage);
+      console.error(
+        'Error fetching available slots:',
+        err,
+        'Tutor ID:',
+        tutor,
+        'Date:',
+        date
+      );
+    } finally {
+      setRescheduleLoading(false);
+    }
+  };
+
   return (
     <div className="dashboard-section">
       <h3>My Sessions</h3>
+
+      <div className="view-toggle">
+        <button
+          className={`btn btn-toggle ${viewMode === 'list' ? 'active' : ''}`}
+          onClick={() => setViewMode('list')}
+        >
+          List View
+        </button>
+        <button
+          className={`btn btn-toggle ${
+            viewMode === 'calendar' ? 'active' : ''
+          }`}
+          onClick={() => setViewMode('calendar')}
+        >
+          Calendar View
+        </button>
+      </div>
 
       {isLoading && (
         <div className="loading-container">
@@ -416,7 +478,71 @@ const SessionManagement = () => {
 
       {error && <div className="error-message">{error}</div>}
 
-      {!isLoading && !error && (
+      {!isLoading && !error && viewMode === 'calendar' && (
+        <div className="calendar-view">
+          <div className="calendar-header">
+            <button className="btn btn-icon" onClick={goToPreviousMonth}>
+              &lt;
+            </button>
+            <h4>
+              {currentMonth.toLocaleDateString('en-US', {
+                month: 'long',
+                year: 'numeric',
+              })}
+            </h4>
+            <button className="btn btn-icon" onClick={goToNextMonth}>
+              &gt;
+            </button>
+          </div>
+
+          <div className="calendar-grid">
+            <div className="weekday-header">Sunday</div>
+            <div className="weekday-header">Monday</div>
+            <div className="weekday-header">Tuesday</div>
+            <div className="weekday-header">Wednesday</div>
+            <div className="weekday-header">Thursday</div>
+            <div className="weekday-header">Friday</div>
+            <div className="weekday-header">Saturday</div>
+
+            {getDatesInMonth().map((dateObj, index) => (
+              <div
+                key={index}
+                className={`calendar-day ${dateObj.isEmpty ? 'empty' : ''}`}
+              >
+                {!dateObj.isEmpty && (
+                  <>
+                    <div className="day-number">{dateObj.day}</div>
+
+                    {dateObj.formattedDate &&
+                      getSessionsForDate(dateObj.formattedDate).length > 0 && (
+                        <div className="calendar-sessions">
+                          {getSessionsForDate(dateObj.formattedDate).map(
+                            (session) => (
+                              <div
+                                key={session._id}
+                                className="calendar-session-pill"
+                                onClick={() => handleViewDetails(session._id)}
+                                title={`${session.subject} with ${session.tutor.name} at ${session.startTime}`}
+                              >
+                                {session.subject.substring(0, 10)}
+                                {session.subject.length > 10 ? '...' : ''}
+                                <span className="session-time">
+                                  {session.startTime}
+                                </span>
+                              </div>
+                            )
+                          )}
+                        </div>
+                      )}
+                  </>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {!isLoading && !error && viewMode === 'list' && (
         <>
           <h4>Upcoming Sessions ({upcomingSessions.length})</h4>
           {upcomingSessions.length > 0 ? (
@@ -462,361 +588,232 @@ const SessionManagement = () => {
           ) : (
             <p>You have no upcoming sessions scheduled.</p>
           )}
+        </>
+      )}
 
-          <h4>Past Sessions ({pastSessions.length})</h4>
-          {pastSessions.length > 0 ? (
-            <div className="session-list">
-              {pastSessions.map((session) => (
-                <div className="session-card past" key={session._id}>
-                  <div className="session-info">
-                    <h5>
-                      {session.subject} with{' '}
-                      {currentUser.role === 'student'
-                        ? session.tutor.name
-                        : session.student.name}
-                    </h5>
-                    <p>
-                      📅 {formatDateTime(session.date, session.startTime)} -{' '}
-                      {session.endTime}
-                    </p>
-                    <p>📍 {session.location || 'Online Session'}</p>
-                    {session.review ? (
-                      <div className="session-review">
-                        <div className="stars">
-                          {'★'.repeat(session.review.rating)}
-                          {'☆'.repeat(5 - session.review.rating)}
-                        </div>
-                        <p>{session.review.review}</p>
-                      </div>
-                    ) : (
-                      <button className="btn btn-outlined btn-sm">
-                        Leave a Review
-                      </button>
-                    )}
-                  </div>
-                  <div className="session-actions">
+      {/* Reschedule Modal */}
+      {isRescheduling && (
+        <div className="modal-overlay">
+          <div className="modal-content reschedule-modal">
+            <button className="close-button" onClick={handleCloseReschedule}>
+              &times;
+            </button>
+            <div className="modal-header">
+              <h3>Reschedule Session</h3>
+            </div>
+
+            {rescheduleSuccess ? (
+              <div className="success-message">
+                <div className="success-icon">✓</div>
+                <p>Session rescheduled successfully!</p>
+              </div>
+            ) : (
+              <div className="modal-body">
+                {rescheduleError && (
+                  <div className="booking-error-message">
+                    <p>{rescheduleError}</p>
                     <button
-                      className="btn btn-primary btn-sm"
-                      onClick={() => handleViewDetails(session._id)}
-                    >
-                      View Details
-                    </button>
-                    <button className="btn btn-outlined btn-sm">
-                      Book Again
-                    </button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <p>No past sessions found.</p>
-          )}
+                      className="btn btn-link"
+                      onClick={() => {
+                        if (rescheduleDate && rescheduleSession) {
+                          const tutorId =
+                            typeof rescheduleSession.tutor === 'string'
+                              ? rescheduleSession.tutor
+                              : rescheduleSession.tutor?._id;
 
-          {sessions.length === 0 && (
-            <div className="empty-state">
-              <p>You haven't booked any sessions yet.</p>
-              <button
-                className="btn btn-primary"
-                onClick={() => setActiveSection(SECTIONS.TUTORS)}
-              >
-                Find a Tutor
-              </button>
-            </div>
-          )}
-
-          {/* Reschedule Modal */}
-          {isRescheduling && (
-            <div className="modal-overlay">
-              <div className="modal-content reschedule-modal">
-                <button
-                  className="close-button"
-                  onClick={handleCloseReschedule}
-                >
-                  &times;
-                </button>
-                <div className="modal-header">
-                  <h3>Reschedule Session</h3>
-                </div>
-
-                {rescheduleSuccess ? (
-                  <div className="success-message">
-                    <div className="success-icon">✓</div>
-                    <p>Session rescheduled successfully!</p>
-                  </div>
-                ) : (
-                  <div className="modal-body">
-                    {rescheduleError && (
-                      <div className="booking-error-message">
-                        <p>{rescheduleError}</p>
-                        <button
-                          className="btn btn-link"
-                          onClick={() => {
-                            if (rescheduleDate && rescheduleSession) {
-                              const tutorId =
-                                typeof rescheduleSession.tutor === 'string'
-                                  ? rescheduleSession.tutor
-                                  : rescheduleSession.tutor?._id;
-
-                              if (tutorId) {
-                                setRescheduleError(null);
-                                fetchAvailableSlots(tutorId, rescheduleDate);
-                              }
-                            }
-                          }}
-                        >
-                          Try Again
-                        </button>
-                      </div>
-                    )}
-
-                    <div className="form-group">
-                      <label htmlFor="reschedule-date">New Date:</label>
-                      <input
-                        type="date"
-                        id="reschedule-date"
-                        value={rescheduleDate}
-                        onChange={handleRescheduleDateChange}
-                        min={new Date().toISOString().split('T')[0]}
-                      />
-                    </div>
-
-                    {rescheduleLoading && (
-                      <div className="slots-loading">
-                        <div className="loader small"></div>
-                        <p>Loading available time slots...</p>
-                      </div>
-                    )}
-
-                    {!rescheduleLoading &&
-                    rescheduleDate &&
-                    availableSlots.length > 0 ? (
-                      <div className="form-group">
-                        <label>Available Time Slots:</label>
-                        <div className="time-slots-container">
-                          {availableSlots.map((availabilitySlot, index) => (
-                            <div key={index} className="day-slots">
-                              <h4>{availabilitySlot.day}</h4>
-                              <div className="time-slots">
-                                {availabilitySlot.slots.map(
-                                  (slot, slotIndex) => (
-                                    <button
-                                      key={slotIndex}
-                                      type="button"
-                                      className={`time-slot-btn ${
-                                        selectedSlot &&
-                                        selectedSlot.startTime ===
-                                          slot.startTime &&
-                                        selectedSlot.endTime === slot.endTime
-                                          ? 'selected'
-                                          : ''
-                                      }`}
-                                      onClick={() => handleSlotSelection(slot)}
-                                    >
-                                      {slot.startTime} - {slot.endTime}
-                                    </button>
-                                  )
-                                )}
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    ) : (
-                      !rescheduleLoading &&
-                      rescheduleDate && (
-                        <div className="no-slots-message">
-                          <p>No available time slots for the selected date.</p>
-                        </div>
-                      )
-                    )}
-
-                    <div className="modal-footer">
-                      <button
-                        className={`btn btn-primary ${
-                          rescheduleLoading ? 'loading' : ''
-                        }`}
-                        onClick={handleRescheduleSubmit}
-                        disabled={
-                          rescheduleLoading || !selectedSlot || !rescheduleDate
+                          if (tutorId) {
+                            setRescheduleError(null);
+                            fetchAvailableSlots(tutorId, rescheduleDate);
+                          }
                         }
-                      >
-                        {rescheduleLoading
-                          ? 'Processing...'
-                          : 'Confirm Reschedule'}
-                      </button>
-                    </div>
+                      }}
+                    >
+                      Try Again
+                    </button>
                   </div>
                 )}
-              </div>
-            </div>
-          )}
 
-          {/* Cancel Confirmation Dialog */}
-          {showCancelConfirm && (
-            <div className="modal-overlay">
-              <div className="modal-content confirm-modal">
-                <div className="modal-header">
-                  <h3>Cancel Session</h3>
+                <div className="form-group">
+                  <label htmlFor="reschedule-date">New Date:</label>
+                  <input
+                    type="date"
+                    id="reschedule-date"
+                    value={rescheduleDate}
+                    onChange={handleRescheduleDateChange}
+                    min={new Date().toISOString().split('T')[0]}
+                  />
                 </div>
-                <div className="modal-body">
-                  <p>
-                    Are you sure you want to cancel this session? This action
-                    cannot be undone.
-                  </p>
-                </div>
-                <div className="modal-footer">
-                  <button
-                    className="btn btn-secondary"
-                    onClick={handleCancelClose}
-                    disabled={cancelLoading}
-                  >
-                    No, Keep It
-                  </button>
-                  <button
-                    className={`btn btn-danger ${
-                      cancelLoading ? 'loading' : ''
-                    }`}
-                    onClick={handleCancelConfirm}
-                    disabled={cancelLoading}
-                  >
-                    {cancelLoading ? 'Cancelling...' : 'Yes, Cancel Session'}
-                  </button>
-                </div>
-              </div>
-            </div>
-          )}
 
-          {/* Session Details Modal */}
-          {showDetailsModal && (
-            <div className="modal-overlay">
-              <div className="modal-content session-details-modal">
-                <button className="close-button" onClick={handleCloseDetails}>
-                  &times;
-                </button>
-                <div className="modal-header">
-                  <h3>Session Details</h3>
-                </div>
-                <div className="modal-body">
-                  {detailsLoading ? (
-                    <div className="loading-container">
-                      <div className="loader small"></div>
-                      <p>Loading session details...</p>
-                    </div>
-                  ) : detailsError ? (
-                    <div className="error-message">
-                      <p>{detailsError}</p>
-                      <button
-                        className="btn btn-link"
-                        onClick={() =>
-                          selectedSessionDetails &&
-                          handleViewDetails(selectedSessionDetails._id)
-                        }
-                      >
-                        Try Again
-                      </button>
-                    </div>
-                  ) : selectedSessionDetails ? (
-                    <div className="session-details">
-                      <div className="detail-row">
-                        <span className="detail-label">Subject:</span>
-                        <span className="detail-value">
-                          {selectedSessionDetails.subject}
-                        </span>
-                      </div>
+                {rescheduleLoading && (
+                  <div className="slots-loading">
+                    <div className="loader small"></div>
+                    <p>Loading available time slots...</p>
+                  </div>
+                )}
 
-                      <div className="detail-row">
-                        <span className="detail-label">Tutor:</span>
-                        <span className="detail-value">
-                          {selectedSessionDetails.tutor?.name || 'Unknown'}
-                        </span>
-                      </div>
-
-                      <div className="detail-row">
-                        <span className="detail-label">Student:</span>
-                        <span className="detail-value">
-                          {selectedSessionDetails.student?.name || 'Unknown'}
-                        </span>
-                      </div>
-
-                      <div className="detail-row">
-                        <span className="detail-label">Date:</span>
-                        <span className="detail-value">
-                          {
-                            formatDateTime(
-                              selectedSessionDetails.date,
-                              selectedSessionDetails.startTime
-                            ).split('at')[0]
-                          }
-                        </span>
-                      </div>
-
-                      <div className="detail-row">
-                        <span className="detail-label">Time:</span>
-                        <span className="detail-value">
-                          {selectedSessionDetails.startTime} -{' '}
-                          {selectedSessionDetails.endTime}
-                        </span>
-                      </div>
-
-                      <div className="detail-row">
-                        <span className="detail-label">Location:</span>
-                        <span className="detail-value">
-                          {selectedSessionDetails.location || 'Online Session'}
-                        </span>
-                      </div>
-
-                      {selectedSessionDetails.notes && (
-                        <div className="detail-row">
-                          <span className="detail-label">Notes:</span>
-                          <span className="detail-value">
-                            {selectedSessionDetails.notes}
-                          </span>
-                        </div>
-                      )}
-
-                      {selectedSessionDetails.review && (
-                        <div className="detail-row review-details">
-                          <span className="detail-label">Review:</span>
-                          <div className="detail-value">
-                            <div className="stars">
-                              {'★'.repeat(selectedSessionDetails.review.rating)}
-                              {'☆'.repeat(
-                                5 - selectedSessionDetails.review.rating
-                              )}
-                            </div>
-                            <p>{selectedSessionDetails.review.review}</p>
+                {!rescheduleLoading &&
+                rescheduleDate &&
+                availableSlots.length > 0 ? (
+                  <div className="form-group">
+                    <label>Available Time Slots:</label>
+                    <div className="time-slots-container">
+                      {availableSlots.map((availabilitySlot, index) => (
+                        <div key={index} className="day-slots">
+                          <h4>{availabilitySlot.day}</h4>
+                          <div className="time-slots">
+                            {availabilitySlot.slots.map((slot, slotIndex) => (
+                              <button
+                                key={slotIndex}
+                                type="button"
+                                className={`time-slot-btn ${
+                                  selectedSlot &&
+                                  selectedSlot.startTime === slot.startTime &&
+                                  selectedSlot.endTime === slot.endTime
+                                    ? 'selected'
+                                    : ''
+                                }`}
+                                onClick={() => setSelectedSlot(slot)}
+                              >
+                                {slot.startTime} - {slot.endTime}
+                              </button>
+                            ))}
                           </div>
                         </div>
-                      )}
-
-                      <div className="detail-row">
-                        <span className="detail-label">Status:</span>
-                        <span
-                          className={`detail-value status-badge ${selectedSessionDetails.status}`}
-                        >
-                          {selectedSessionDetails.status
-                            .charAt(0)
-                            .toUpperCase() +
-                            selectedSessionDetails.status.slice(1)}
-                        </span>
-                      </div>
+                      ))}
                     </div>
-                  ) : (
-                    <p>No session information available</p>
-                  )}
-                </div>
+                  </div>
+                ) : (
+                  !rescheduleLoading &&
+                  rescheduleDate && (
+                    <div className="no-slots-message">
+                      <p>No available time slots for the selected date.</p>
+                    </div>
+                  )
+                )}
+
                 <div className="modal-footer">
                   <button
-                    className="btn btn-secondary"
-                    onClick={handleCloseDetails}
+                    className={`btn btn-primary ${
+                      rescheduleLoading ? 'loading' : ''
+                    }`}
+                    onClick={handleRescheduleSubmit}
+                    disabled={
+                      rescheduleLoading || !selectedSlot || !rescheduleDate
+                    }
                   >
-                    Close
+                    {rescheduleLoading ? 'Processing...' : 'Confirm Reschedule'}
                   </button>
                 </div>
               </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Cancel Confirmation Dialog */}
+      {showCancelConfirm && (
+        <div className="modal-overlay">
+          <div className="modal-content confirm-modal">
+            <div className="modal-header">
+              <h3>Cancel Session</h3>
             </div>
-          )}
-        </>
+            <div className="modal-body">
+              <p>
+                Are you sure you want to cancel this session? This action cannot
+                be undone.
+              </p>
+            </div>
+            <div className="modal-footer">
+              <button
+                className="btn btn-secondary"
+                onClick={handleCancelClose}
+                disabled={cancelLoading}
+              >
+                No, Keep It
+              </button>
+              <button
+                className={`btn btn-danger ${cancelLoading ? 'loading' : ''}`}
+                onClick={handleCancelConfirm}
+                disabled={cancelLoading}
+              >
+                {cancelLoading ? 'Cancelling...' : 'Yes, Cancel Session'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Session Details Modal */}
+      {showDetailsModal && (
+        <div className="modal-overlay">
+          <div className="modal-content session-details-modal">
+            <button className="close-button" onClick={handleCloseDetails}>
+              &times;
+            </button>
+            <div className="modal-header">
+              <h3>Session Details</h3>
+            </div>
+            <div className="modal-body">
+              {detailsLoading ? (
+                <div className="loading-container">
+                  <div className="loader small"></div>
+                  <p>Loading session details...</p>
+                </div>
+              ) : detailsError ? (
+                <div className="error-message">
+                  <p>{detailsError}</p>
+                </div>
+              ) : selectedSessionDetails ? (
+                <div className="session-details">
+                  <div className="detail-row">
+                    <span className="detail-label">Subject:</span>
+                    <span className="detail-value">
+                      {selectedSessionDetails.subject}
+                    </span>
+                  </div>
+                  <div className="detail-row">
+                    <span className="detail-label">Tutor:</span>
+                    <span className="detail-value">
+                      {selectedSessionDetails.tutor?.name || 'Unknown'}
+                    </span>
+                  </div>
+                  <div className="detail-row">
+                    <span className="detail-label">Date:</span>
+                    <span className="detail-value">
+                      {formatDateTime(
+                        selectedSessionDetails.date,
+                        selectedSessionDetails.startTime
+                      )}
+                    </span>
+                  </div>
+                  <div className="detail-row">
+                    <span className="detail-label">Time:</span>
+                    <span className="detail-value">
+                      {selectedSessionDetails.startTime} -{' '}
+                      {selectedSessionDetails.endTime}
+                    </span>
+                  </div>
+                  <div className="detail-row">
+                    <span className="detail-label">Location:</span>
+                    <span className="detail-value">
+                      {selectedSessionDetails.location || 'Online Session'}
+                    </span>
+                  </div>
+                </div>
+              ) : (
+                <p>No session information available</p>
+              )}
+            </div>
+            <div className="modal-footer">
+              <button
+                className="btn btn-secondary"
+                onClick={handleCloseDetails}
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

@@ -767,3 +767,151 @@ body {
   gap: 10px;
   padding: 20px 0;
 }
+
+/* View Toggle Buttons */
+.view-toggle {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.btn-toggle {
+  padding: 8px 15px;
+  background-color: #f0f0f0;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.btn-toggle.active {
+  background-color: #3498db;
+  color: white;
+  border-color: #2980b9;
+}
+
+/* Calendar View Styles */
+.calendar-view {
+  background-color: #fff;
+  border-radius: 8px;
+  padding: 15px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.calendar-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+.calendar-header h4 {
+  margin: 0;
+  font-size: 18px;
+}
+
+.btn-icon {
+  background: transparent;
+  border: 1px solid #ddd;
+  border-radius: 50%;
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 5px;
+}
+
+.weekday-header {
+  padding: 10px 5px;
+  text-align: center;
+  font-weight: 500;
+  background-color: #f5f5f5;
+  border-radius: 4px;
+}
+
+.calendar-day {
+  min-height: 100px;
+  padding: 5px;
+  border: 1px solid #eee;
+  border-radius: 4px;
+  position: relative;
+}
+
+.calendar-day.empty {
+  background-color: #f9f9f9;
+  border: 1px dashed #eee;
+}
+
+.day-number {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: 500;
+  border-radius: 50%;
+}
+
+.calendar-day:hover .day-number {
+  background-color: #e0e0e0;
+}
+
+.calendar-sessions {
+  margin-top: 25px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.calendar-session-pill {
+  background-color: #3498db;
+  color: white;
+  font-size: 12px;
+  padding: 3px 6px;
+  border-radius: 3px;
+  cursor: pointer;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: flex;
+  justify-content: space-between;
+}
+
+.calendar-session-pill:hover {
+  background-color: #2980b9;
+}
+
+.session-time {
+  font-size: 10px;
+  opacity: 0.8;
+}
+
+/* Make calendar responsive */
+@media (max-width: 768px) {
+  .weekday-header {
+    font-size: 12px;
+    padding: 5px 2px;
+  }
+
+  .calendar-day {
+    min-height: 80px;
+  }
+
+  .calendar-session-pill {
+    font-size: 10px;
+    padding: 2px 4px;
+  }
+}
